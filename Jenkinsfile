@@ -14,12 +14,12 @@ pipeline {
 
     stage('GCP Auth & GKE Config') {
       steps {
-        withCredentials([file(credentialsId: 'coral-prod-sa', variable: 'GC_KEY')]) {
+        withCredentials([file(credentialsId: 'coral-proj', variable: 'GC_KEY')]) {
           sh '''
-            echo "🔐 Activating GCP service account"
+            echo " Activating GCP service account"
             gcloud auth activate-service-account --key-file=$GC_KEY
 
-            echo "🔗 Getting GKE cluster credentials"
+            echo " Getting GKE cluster credentials"
             gcloud container clusters get-credentials devops-onboarding \
               --zone us-central1-a \
               --project coral-proj
@@ -39,24 +39,24 @@ pipeline {
     stage('Install Ingress Controller via Helm') {
       steps {
         sh '''
-          echo "📦 Adding ingress-nginx Helm repo"
+          echo " Adding ingress-nginx Helm repo"
           helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
           helm repo update
 
-          echo "📁 Creating ingress-nginx namespace (if not exists)"
+          echo " Creating ingress-nginx namespace (if not exists)"
           kubectl create namespace ingress-nginx || true
 
-          echo "🚀 Installing ingress-nginx via Helm"
+          echo " Installing ingress-nginx via Helm"
           helm install ingress-nginx ingress-nginx/ingress-nginx \
             --namespace ingress-nginx \
             --create-namespace
 
-          echo "🌐 Checking LoadBalancer IP"
+          echo "Checking LoadBalancer IP"
           kubectl get svc ingress-nginx-controller -n ingress-nginx
         '''
       }
     }
 
-  } // end of stages
+  } 
 
-} // end of pipeline
+} 
