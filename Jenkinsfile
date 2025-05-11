@@ -1,19 +1,11 @@
 pipeline {
   agent {
-        kubernetes {
-            containerTemplate {
-                name 'amirn88'
-                namespace 'amirn88'
-                image 'amirn88/jenkins-gcp-agent:latest'
-                command 'sleep'
-                args 'infinity'
-            }
-            defaultContainer 'amirn88'
-        }
-    }
+    label 'myapp-jenkins-agent'
+  }
+
 
   environment {
-    IMAGE_NAME = 'coral-proj-project'
+    IMAGE_NAME = 'amirn88/jenkins-gcp-agent:latest'
     PROJECT_ID = 'coral-proj-project-1213'
     CLUSTER_NAME = 'devops-onboarding'
     GKE_ZONE = 'us-central1-a'
@@ -23,8 +15,8 @@ pipeline {
     stage('Verify Tools') {
       steps {
         script {
-          docker.image('amirn88/jenkins-gcp-agent:latest')
-                .inside('-v /var/run/docker.sock:/var/run/docker.sock') {
+           def appImage = docker.build("amirn88/coral-proj:${env.BUILD_ID}")
+          appImage.push() {
             sh '''
               echo "✅ Verifying tool versions:"
               python3 --version
