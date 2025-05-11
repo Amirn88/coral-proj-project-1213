@@ -1,5 +1,16 @@
 pipeline {
-  agent any
+  agent {
+        kubernetes {
+            containerTemplate {
+                name 'amirn88'
+                namespace 'amirn88'
+                image 'amirn88/jenkins-gcp-agent:latest'
+                command 'sleep'
+                args 'infinity'
+            }
+            defaultContainer 'amirn88'
+        }
+    }
 
   environment {
     IMAGE_NAME = 'coral-proj-project'
