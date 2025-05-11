@@ -1,6 +1,6 @@
 pipeline {
   agent {
-    label 'myapp-jenkins-agent' // should use custom image
+    label 'myapp-jenkins-agent'  // Make sure this label is mapped correctly to your custom image
   }
 
   environment {
@@ -11,14 +11,28 @@ pipeline {
   }
 
   stages {
+    stage('Verify Tools') {
+      steps {
+        sh '''
+          echo "✅ Verifying tool versions:"
+          python3 --version
+          gcloud version
+          kubectl version --client --short
+          helm version --short
+          jq --version
+          docker --version
+        '''
+      }
+    }
+
     stage('GCP Auth & GKE Config') {
       steps {
         withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
           sh '''
-            echo "Activating GCP service account"
+            echo "🔐 Authenticating with GCP"
             gcloud auth activate-service-account --key-file=$GC_KEY
 
-            echo "Getting GKE cluster credentials"
+            echo "🔧 Fetching GKE credentials"
             gcloud container clusters get-credentials $CLUSTER_NAME \
               --zone $GKE_ZONE \
               --project $PROJECT_ID
@@ -38,19 +52,19 @@ pipeline {
     stage('Install Ingress Controller via Helm') {
       steps {
         sh '''
-          echo "Adding ingress-nginx Helm repo"
+          echo "➕ Adding ingress-nginx Helm repo"
           helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
           helm repo update
 
-          echo "Creating ingress-nginx namespace (if not exists)"
+          echo "📦 Creating namespace if not exists"
           kubectl create namespace ingress-nginx || true
 
-          echo "Installing ingress-nginx via Helm"
+          echo "🚀 Installing ingress-nginx via Helm"
           helm install ingress-nginx ingress-nginx/ingress-nginx \
             --namespace ingress-nginx \
-            --create-namespace
+            --create-namespace || true
 
-          echo "Checking LoadBalancer IP"
+          echo "🔍 Checking LoadBalancer service"
           kubectl get svc ingress-nginx-controller -n ingress-nginx
         '''
       }
