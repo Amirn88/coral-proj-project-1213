@@ -10,31 +10,41 @@ pipeline {
 
   stages {
     stage('Verify Tools') {
-      script {
+      steps {
+        script {
           docker.image('amirn88/jenkins-gcp-agent:latest')
                 .inside('-v /var/run/docker.sock:/var/run/docker.sock') {
             sh '''
+              echo "✅ Verifying tool versions:"
+              python3 --version
               gcloud version
-              kubectl version --client
-              helm version
+              kubectl version --client --short
+              helm version --short
+              jq --version
               docker --version
-              echo "✅ Tools are working inside the Docker container"
             '''
           }
+        }
+      }
     }
 
     stage('GCP Auth & GKE Config') {
       steps {
         withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
-          sh '''
-            echo "🔐 Authenticating with GCP"
-            gcloud auth activate-service-account --key-file=$GC_KEY
+          script {
+            docker.image('amirn88/jenkins-gcp-agent:latest')
+                  .inside('-v /var/run/docker.sock:/var/run/docker.sock') {
+              sh '''
+                echo "🔐 Authenticating with GCP"
+                gcloud auth activate-service-account --key-file=$GC_KEY
 
-            echo "🔧 Fetching GKE credentials"
-            gcloud container clusters get-credentials $CLUSTER_NAME \
-              --zone $GKE_ZONE \
-              --project $PROJECT_ID
-          '''
+                echo "🔧 Fetching GKE credentials"
+                gcloud container clusters get-credentials $CLUSTER_NAME \
+                  --zone $GKE_ZONE \
+                  --project $PROJECT_ID
+              '''
+            }
+          }
         }
       }
     }
@@ -49,22 +59,27 @@ pipeline {
 
     stage('Install Ingress Controller via Helm') {
       steps {
-        sh '''
-          echo "➕ Adding ingress-nginx Helm repo"
-          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-          helm repo update
+        script {
+          docker.image('amirn88/jenkins-gcp-agent:latest')
+                .inside('-v /var/run/docker.sock:/var/run/docker.sock') {
+            sh '''
+              echo "➕ Adding ingress-nginx Helm repo"
+              helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+              helm repo update
 
-          echo "📦 Creating namespace if not exists"
-          kubectl create namespace ingress-nginx || true
+              echo "📦 Creating namespace if not exists"
+              kubectl create namespace ingress-nginx || true
 
-          echo "🚀 Installing ingress-nginx via Helm"
-          helm install ingress-nginx ingress-nginx/ingress-nginx \
-            --namespace ingress-nginx \
-            --create-namespace || true
+              echo "🚀 Installing ingress-nginx via Helm"
+              helm install ingress-nginx ingress-nginx/ingress-nginx \
+                --namespace ingress-nginx \
+                --create-namespace || true
 
-          echo "🔍 Checking LoadBalancer service"
-          kubectl get svc ingress-nginx-controller -n ingress-nginx
-        '''
+              echo "🔍 Checking LoadBalancer service"
+              kubectl get svc ingress-nginx-controller -n ingress-nginx
+            '''
+          }
+        }
       }
     }
   }
