@@ -12,38 +12,14 @@ pipeline {
         }
     }
 
-  environment {
-    IMAGE_NAME = 'amirn88/jenkins-gcp-agent:latest'
-    PROJECT_ID = 'coral-proj-project-1213'
-    CLUSTER_NAME = 'devops-onboarding'
-    GKE_ZONE = 'us-central1-a'
-  }
+
 
   stages {
-    stage('Verify Tools') {
-      steps {
-        script {
-           def appImage = docker.build("amirn88/coral-proj:latest")
-          appImage.push() {
-            sh '''
-              echo "✅ Verifying tool versions:"
-              python3 --version
-              gcloud version
-              kubectl version --client --short
-              helm version --short
-              jq --version
-              docker --version
-            '''
-          }
-        }
-      }
-    }
-
     stage('GCP Auth & GKE Config') {
       steps {
         withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
           script {
-            docker.image('amirn88/jenkins-gcp-agent:latest')
+            docker.image('gcr.io/google.com/cloudsdktool/google-cloud-cli:stable')
                   .inside('-v /var/run/docker.sock:/var/run/docker.sock') {
               sh '''
                 echo "🔐 Authenticating with GCP"
@@ -71,7 +47,7 @@ pipeline {
     stage('Install Ingress Controller via Helm') {
       steps {
         script {
-          docker.image('amirn88/jenkins-gcp-agent:latest')
+          docker.image('gcr.io/google.com/cloudsdktool/google-cloud-cli:stable')
                 .inside('-v /var/run/docker.sock:/var/run/docker.sock') {
             sh '''
               echo "➕ Adding ingress-nginx Helm repo"
