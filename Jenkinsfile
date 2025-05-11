@@ -7,7 +7,7 @@ pipeline {
 
   environment {
     IMAGE_NAME = 'coral-proj-project'
-    PROJECT_ID = 'coral-proj-project'
+    PROJECT_ID = "${project}"
   }
 
   stages {
@@ -18,43 +18,54 @@ pipeline {
             url: 'https://github.com/Amirn88/coral-proj-project-1213'
       }
     }
-    stage('GCP Auth & GKE Config') {
+
+    stage('GCP Auth & Get GKE Credentials') {
       steps {
         withCredentials([file(credentialsId: 'coral-prod', variable: 'GC_KEY')]) {
-          sh '''
-            echo " Activating GCP service account"
+          sh """
+            echo "🔐 Activating GCP service account"
             gcloud auth activate-service-account --key-file=$GC_KEY
 
-            echo " Getting GKE cluster credentials"
-            gcloud container clusters get-credentials devops-onboarding \
-              --zone us-central1-a \
-              --project coral-proj
-          '''
+            echo "🔧 Getting GKE credentials for cluster: ${cluster}"
+            gcloud container clusters get-credentials ${cluster} \
+              --zone ${zone} \
+              --project ${project}
+          """
         }
       }
     }
 
     stage('Install Ingress Controller via Helm') {
       steps {
-        sh '''
-          echo " Adding ingress-nginx Helm repo"
+        sh """
+          echo "📦 Adding ingress-nginx Helm repo"
           helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
           helm repo update
 
-          echo " Creating ingress-nginx namespace (if not exists)"
+          echo "📁 Creating namespace ingress-nginx (if not exists)"
           kubectl create namespace ingress-nginx || true
 
-          echo " Installing ingress-nginx via Helm"
-          helm install ingress-nginx ingress-nginx/ingress-nginx \
+          echo "🚀 Installing or upgrading ingress-nginx via Helm"
+          helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
             --namespace ingress-nginx \
             --create-namespace
 
-          echo " Checking LoadBalancer IP"
+          echo "🔎 Verifying LoadBalancer IP"
           kubectl get svc ingress-nginx-controller -n ingress-nginx
-        '''
+        """
       }
     }
+  }
 
-  } 
-
-} 
+  post {
+    always {
+      echo "🧾 Pipeline finished."
+    }
+    success {
+      echo "✅ Ingress controller setup successful!"
+    }
+    failure {
+      echo "❌ Something went wrong during the deployment."
+    }
+  }
+}
