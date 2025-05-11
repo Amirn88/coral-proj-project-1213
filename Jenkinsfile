@@ -3,17 +3,10 @@ def project = 'coral-proj' as Object
 def zone = 'us-central1-a' as Object
 
 pipeline {
-    agent {
-        kubernetes {
-            containerTemplate {
-                name 't4h'
-                namespace 't4h'
-                image 'tech4health/t4h-os:ubuntu-20.10'
-                command 'sleep'
-                args 'infinity'
-            }
-            defaultContainer 't4h'
-        }
+    docker {
+    image 'google/cloud-sdk:slim'
+    args '-u root'  # if you need sudo
+  }
     }
 
   environment {
