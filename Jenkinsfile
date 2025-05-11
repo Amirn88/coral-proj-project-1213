@@ -3,15 +3,18 @@ def project = 'coral-proj' as Object
 def zone = 'us-central1-a' as Object
 
 pipeline {
+  agent {
     docker {
-    image 'google/cloud-sdk:slim'
-    args '-u root'  # if you need sudo
-  }
+      image 'google/cloud-sdk:slim'
+      args '-u root' // optional; container is usually root already
     }
+  }
 
   environment {
-    IMAGE_NAME = 'coral-proj-project'
+    CLUSTER_NAME = 'devops-onboarding'
     PROJECT_ID = 'coral-proj-project-1213'
+    GKE_ZONE = 'us-central1-a'
+    IMAGE_NAME = 'coral-proj-project'
   }
 
   stages {
