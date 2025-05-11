@@ -1,7 +1,6 @@
 pipeline {
-  agent {
-    label 'docker-agent'  // Node with Docker and required tools installed
-  }
+  agent any
+    
 
   environment {
     IMAGE_NAME = 'coral-proj-project'
