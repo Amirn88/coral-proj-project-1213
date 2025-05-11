@@ -1,6 +1,7 @@
 pipeline {
-  agent any
-    
+  agent {
+    label 'myapp-jenkins-agent'  // make sure this matches the working label
+  }
 
   environment {
     IMAGE_NAME = 'coral-proj-project'
@@ -10,17 +11,12 @@ pipeline {
   }
 
   stages {
-
     stage('Install Google Cloud SDK') {
       steps {
         sh '''
           echo "Installing Google Cloud SDK"
-          sudo apt-get update && sudo apt-get install -y curl apt-transport-https ca-certificates gnupg
-          echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" \
-            | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-          curl https://packages.cloud.google.com/apt/doc/apt-key.gpg \
-            | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
-          sudo apt-get update && sudo apt-get install -y google-cloud-sdk
+          curl -sSL https://sdk.cloud.google.com | bash
+          source "$HOME/google-cloud-sdk/path.bash.inc"
           gcloud version
         '''
       }
@@ -31,12 +27,13 @@ pipeline {
         withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
           sh '''
             echo "Activating GCP service account"
+            source "$HOME/google-cloud-sdk/path.bash.inc"
             gcloud auth activate-service-account --key-file=$GC_KEY
 
             echo "Getting GKE cluster credentials"
-            gcloud container clusters get-credentials "$CLUSTER_NAME" \
-              --zone "$GKE_ZONE" \
-              --project "$PROJECT_ID"
+            gcloud container clusters get-credentials $CLUSTER_NAME \
+              --zone $GKE_ZONE \
+              --project $PROJECT_ID
           '''
         }
       }
@@ -70,6 +67,5 @@ pipeline {
         '''
       }
     }
-
   }
 }
