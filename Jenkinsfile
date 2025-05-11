@@ -1,8 +1,16 @@
 pipeline {
   agent {
-    label 'myapp-jenkins-agent'
-  }
-
+        kubernetes {
+            containerTemplate {
+                name 'default'
+                namespace 'default'
+                image 'gcr.io/google.com/cloudsdktool/google-cloud-cli:stable'
+                command 'sleep'
+                args 'infinity'
+            }
+            defaultContainer 'default'
+        }
+    }
 
   environment {
     IMAGE_NAME = 'amirn88/jenkins-gcp-agent:latest'
