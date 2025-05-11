@@ -9,8 +9,13 @@ pieline{
         stage('script usage'){
             steps{
                 sh'''
-                chmod +x bash-file.sh
-                sh bash-file.sh
+                if [ -f bash-file.sh ]; then
+        chmod +x bash-file.sh
+        ./bash-file.sh
+    else
+        echo "Script bash-file.sh not found!"
+        exit 1
+    fi
                 '''
             }
         }
