@@ -1,6 +1,6 @@
 pipeline {
   agent {
-    label 'myapp-jenkins-agent'  // make sure this matches the working label
+    label 'myapp-jenkins-agent' // should use custom image
   }
 
   environment {
@@ -11,23 +11,11 @@ pipeline {
   }
 
   stages {
-    stage('Install Google Cloud SDK') {
-      steps {
-        sh '''
-          echo "Installing Google Cloud SDK"
-          curl -sSL https://sdk.cloud.google.com | bash
-          source "$HOME/google-cloud-sdk/path.bash.inc"
-          gcloud version
-        '''
-      }
-    }
-
     stage('GCP Auth & GKE Config') {
       steps {
         withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
           sh '''
             echo "Activating GCP service account"
-            source "$HOME/google-cloud-sdk/path.bash.inc"
             gcloud auth activate-service-account --key-file=$GC_KEY
 
             echo "Getting GKE cluster credentials"
