@@ -1,11 +1,5 @@
 pipeline {
-  agent {
-   docker {
-      image 'amirn88/jenkins-gcp-agent:latest'
-      args '-v /var/run/docker.sock:/var/run/docker.sock' // required if you use Docker inside
-      registryCredentialsId 'dockerhub-creds'
-    }
-  }
+  agent any
 
   environment {
     IMAGE_NAME = 'coral-proj-project'
@@ -16,17 +10,17 @@ pipeline {
 
   stages {
     stage('Verify Tools') {
-      steps {
-        sh '''
-          echo "✅ Verifying tool versions:"
-          python3 --version
-          gcloud version
-          kubectl version --client --short
-          helm version --short
-          jq --version
-          docker --version
-        '''
-      }
+      script {
+          docker.image('amirn88/jenkins-gcp-agent:latest')
+                .inside('-v /var/run/docker.sock:/var/run/docker.sock') {
+            sh '''
+              gcloud version
+              kubectl version --client
+              helm version
+              docker --version
+              echo "✅ Tools are working inside the Docker container"
+            '''
+          }
     }
 
     stage('GCP Auth & GKE Config') {
