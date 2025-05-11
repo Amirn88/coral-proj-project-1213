@@ -3,6 +3,7 @@ pipeline {
    docker {
       image 'amirn88/jenkins-gcp-agent:latest'
       args '-v /var/run/docker.sock:/var/run/docker.sock' // required if you use Docker inside
+      registryCredentialsId 'dockerhub-creds'
     }
   }
 
