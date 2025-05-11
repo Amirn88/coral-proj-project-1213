@@ -15,7 +15,7 @@ pipeline {
     stage('Verify Tools') {
       steps {
         script {
-           def appImage = docker.build("amirn88/coral-proj:${env.BUILD_ID}")
+           def appImage = docker.build("amirn88/coral-proj:latest")
           appImage.push() {
             sh '''
               echo "✅ Verifying tool versions:"
