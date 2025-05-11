@@ -14,7 +14,7 @@ pipeline {
 
     stage('GCP Auth & GKE Config') {
       steps {
-        withCredentials([file(credentialsId: 'coral-proj', variable: 'GC_KEY')]) {
+        withCredentials([file(credentialsId: 'GC_KEY', variable: 'GC_KEY')]) {
           sh '''
             echo " Activating GCP service account"
             gcloud auth activate-service-account --key-file=$GC_KEY
