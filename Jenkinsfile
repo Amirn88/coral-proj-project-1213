@@ -15,7 +15,7 @@ pipeline {
       steps {
         git branch: 'main',
             credentialsId: 'github',
-            url: 'https://github.com/Amirn88/coral-proj-project-1213'
+            url: 'https://github.com/Amirn88/coral-proj-project-1213.git'
       }
     }
     stage('GCP Auth & GKE Config') {
