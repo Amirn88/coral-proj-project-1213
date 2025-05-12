@@ -1,7 +1,3 @@
-def cluster = 'devops-onboarding' as Object
-def project = 'coral-proj' as Object
-def zone = 'us-central1-a' as Object
-
 pipeline {
   agent any
 
