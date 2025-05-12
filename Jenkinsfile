@@ -1,3 +1,7 @@
+def cluster = 'devops-onboarding' as java.lang.Object
+def project = 'coral-proj' as java.lang.Object
+def zone = 'us-central1-a' as java.lang.Object
+
 pipeline {
   agent any
 
@@ -16,7 +20,7 @@ pipeline {
     }
     stage('GCP Auth & GKE Config') {
       steps {
-        withCredentials([file(credentialsId: 'coral-prod', variable: 'GC_KEY')]) {
+        withCredentials([file(credentialsId: 'coral-proj', variable: 'GC_KEY')]) {
           sh '''
             echo " Activating GCP service account"
             gcloud auth activate-service-account --key-file=$GC_KEY
