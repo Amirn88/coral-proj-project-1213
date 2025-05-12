@@ -3,7 +3,7 @@ pipeline {
 
   environment {
     IMAGE_NAME = 'coral-proj-project'
-    PROJECT_ID = 'coral-proj-project'
+    PROJECT_ID = 'coral-prod'
   }
 
   stages {
