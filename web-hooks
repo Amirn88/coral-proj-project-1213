@@ -1,0 +1,2 @@
+curl -v -H "gwt-dry-run: true"\
+  "http://localhost:8080/jenkins/generic-webhook-trigger/invoke?token=abc123"
